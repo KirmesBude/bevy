@@ -12,12 +12,9 @@ pub mod shader;
 pub mod texture;
 pub mod wireframe;
 
-use bevy_ecs::{
-    schedule::{ParallelSystemDescriptorCoercion, SystemStage},
-    system::{IntoExclusiveSystem, IntoSystem, Res},
-};
+use bevy_ecs::{prelude::Local, schedule::{ParallelSystemDescriptorCoercion, SystemStage}, system::{IntoExclusiveSystem, IntoSystem, Res}};
 use bevy_transform::TransformSystem;
-use bevy_utils::tracing::warn;
+use bevy_utils::tracing::{info, warn};
 use draw::{OutsideFrustum, Visible};
 
 pub use once_cell;
@@ -40,7 +37,7 @@ pub mod prelude {
 use crate::prelude::*;
 use base::Msaa;
 use bevy_app::prelude::*;
-use bevy_asset::{AddAsset, AssetStage};
+use bevy_asset::{AddAsset, AssetServer, AssetStage, Assets, Handle, LoadState};
 use bevy_ecs::schedule::{StageLabel, SystemLabel};
 use camera::{
     ActiveCameras, Camera, DepthCalculation, OrthographicProjection, PerspectiveProjection,
@@ -183,6 +180,7 @@ impl Plugin for RenderPlugin {
             CoreStage::PostUpdate,
             camera::active_cameras_system.system(),
         )
+        .add_system_to_stage(CoreStage::PostUpdate, inconsistency_local.system())
         .add_system_to_stage(
             CoreStage::PostUpdate,
             camera::camera_system::<OrthographicProjection>
@@ -246,5 +244,33 @@ fn check_for_render_resource_context(context: Option<Res<Box<dyn RenderResourceC
         warn!(
             "bevy_render couldn't find a render backend. Perhaps try adding the bevy_wgpu feature/plugin!"
         );
+    }
+}
+
+fn inconsistency_local(
+    asset_server: Res<AssetServer>,
+    textures: Res<Assets<Texture>>,
+    mut local_handle: Local<Option<Handle<Texture>>>,
+) {
+    match &*local_handle {
+        None => {
+                /* Load the texture */
+                *local_handle = Some(asset_server.load("android-res/mipmap-mdpi/ic_launcher.png"));
+        }
+        Some(handle) => {
+            /* Poll load state */
+            match asset_server.get_load_state(handle) {
+                LoadState::Loaded => {
+                    let texture = textures.get(handle).unwrap();
+                    info!("{:?}", texture);
+                    
+                    *local_handle = None;
+                }
+                LoadState::Failed => {
+                    *local_handle = None;
+                }
+                _ => {}
+            }
+        }
     }
 }
