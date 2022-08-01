@@ -3,7 +3,7 @@ use basis_universal::{
 };
 use wgpu::{AstcBlock, AstcChannel, Extent3d, TextureDimension, TextureFormat};
 
-use super::{CompressedImageFormats, Image, TextureError};
+use super::image::{CompressedImageFormats, Image, TextureError};
 
 pub fn basis_buffer_to_image(
     buffer: &[u8],
