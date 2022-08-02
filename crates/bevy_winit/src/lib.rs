@@ -221,7 +221,6 @@ fn change_window(
                     break;
                 }
                 bevy_window::WindowCommand::SetIcon { icon } => {
-                    println!("Act on SetIcon command");
                     let window = winit_windows.get_window(id).unwrap();
                     let rgba = icon.data;
                     let width = icon.texture_descriptor.size.width;

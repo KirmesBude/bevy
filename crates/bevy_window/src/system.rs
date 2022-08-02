@@ -1,4 +1,4 @@
-use crate::{Window, WindowCloseRequested, WindowFocused, WindowId, Windows, WindowCommand};
+use crate::{Window, WindowCloseRequested, WindowCommand, WindowFocused, WindowId, Windows};
 
 use bevy_app::AppExit;
 use bevy_asset::Assets;
@@ -58,15 +58,14 @@ pub fn close_on_esc(
     }
 }
 
-pub fn set_icon_command(mut windows: ResMut<Windows>, images: Res<Assets<Image>>) 
-{
+pub fn set_icon_command(mut windows: ResMut<Windows>, images: Res<Assets<Image>>) {
     for window in windows.iter_mut() {
         if !window.is_icon_set {
-            println!("Waiting on image");
             if let Some(image) = images.get(window.icon()) {
-                window.command_queue.push(WindowCommand::SetIcon{icon: image.clone()});
+                window.command_queue.push(WindowCommand::SetIcon {
+                    icon: image.clone(),
+                });
                 window.is_icon_set = true;
-                println!("Command queued");
             }
         }
     }
