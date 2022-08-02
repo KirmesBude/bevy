@@ -70,9 +70,13 @@ fn cycle_cursor_icon(
     }
 }
 
+/// We save the handles to the icon images to cycle through them later.
 struct IconHandleBevy(Handle<Image>);
 struct IconHandleWrench(Handle<Image>);
 
+/// This system loads to icon images, inserts those as resources and sets the icon on the primary window.
+/// The bevy icon is loaded directly using include_bytes.
+/// The wrench icon is loaded using the AssetServer.
 fn setup(
     asset_server: ResMut<AssetServer>,
     mut images: ResMut<Assets<Image>>,
@@ -98,6 +102,7 @@ fn setup(
     window.set_icon(Some(icon_handle_bevy));
 }
 
+/// This system cycles the window's icon through the two icons defined in the setup system when pressing I
 fn cycle_window_icon(
     input: Res<Input<KeyCode>>,
     mut windows: ResMut<Windows>,

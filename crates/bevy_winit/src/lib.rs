@@ -227,6 +227,7 @@ fn change_window(
                 bevy_window::WindowCommand::SetIcon { icon } => {
                     let winit_window = winit_windows.get_window(id).unwrap();
 
+                    // If this is None the icon will be cleared
                     match icon {
                         Some(handle) => {
                             match images.get(&handle) {
@@ -235,11 +236,14 @@ fn change_window(
                                     let width = image.texture_descriptor.size.width;
                                     let height = image.texture_descriptor.size.width;
 
+                                    // Since the image is loaded via the Asset Server, this should always return proper winit Icons.
                                     let icon = Icon::from_rgba(rgba, width, height).ok();
                                     winit_window.set_window_icon(icon);
                                 }
                                 None => {
-                                    // Image has not loaded yet, requeue the set_icon request
+                                    // Image has not loaded yet.
+                                    // Since we have borrowed `windows` to iterate through them, we can't requeue the set_icon request here.
+                                    // Remember window and image handle for requeue.
                                     requeue_icon.push((id, handle));
                                 }
                             }
@@ -253,6 +257,7 @@ fn change_window(
 
     for (id, icon_handle) in requeue_icon {
         let bevy_window = windows.get_mut(id).unwrap();
+        // Requeue the set_icon request
         bevy_window.set_icon(Some(icon_handle));
     }
 

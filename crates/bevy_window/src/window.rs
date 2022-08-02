@@ -282,10 +282,11 @@ pub enum WindowCommand {
     SetResizeConstraints {
         resize_constraints: WindowResizeConstraints,
     },
-    Close,
+    /// Set the window's icon.
     SetIcon {
         icon: Option<Handle<Image>>,
     },
+    Close,
 }
 
 /// Defines the way a window is displayed.
@@ -747,15 +748,28 @@ impl Window {
         self.fit_canvas_to_parent
     }
 
+    /// Get the current Icon as a [`Handle`] of an [`Image`].
+    ///
+    /// The underlying Image may not be loaded at this point.
+    ///
+    /// [`Handle`]: bevy_asset::Handle
+    /// [`Image`]: bevy_render::texture::Image
     #[inline]
+    pub fn icon(&self) -> Option<&Handle<Image>> {
+        self.icon.as_ref()
+    }
+
+    /// Sets the window's icon.
+    ///
+    /// Takes a [`Handle`] of an [`Image`].
+    /// If None is provided the icon is cleared.
+    ///
+    /// [`Handle`]: bevy_asset::Handle
+    /// [`Image`]: bevy_render::texture::Image
     pub fn set_icon(&mut self, icon: Option<Handle<Image>>) {
         self.icon = icon.clone();
 
         self.command_queue.push(WindowCommand::SetIcon { icon });
-    }
-
-    pub fn icon(&self) -> Option<&Handle<Image>> {
-        self.icon.as_ref()
     }
 }
 
