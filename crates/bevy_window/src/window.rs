@@ -1,6 +1,6 @@
 use bevy_asset::Handle;
 use bevy_math::{DVec2, IVec2, UVec2, Vec2};
-use bevy_rendertype::image::{Image, DEFAULT_IMAGE_HANDLE};
+use bevy_rendertype::image::Image;
 use bevy_utils::{tracing::warn, Uuid};
 use raw_window_handle::RawWindowHandle;
 
@@ -207,9 +207,8 @@ pub struct Window {
     mode: WindowMode,
     canvas: Option<String>,
     fit_canvas_to_parent: bool,
-    pub(crate) command_queue: Vec<WindowCommand>,
-    icon: Handle<Image>,
-    pub(crate) is_icon_set: bool,
+    command_queue: Vec<WindowCommand>,
+    icon: Option<Handle<Image>>,
 }
 /// A command to be sent to a window.
 ///
@@ -285,7 +284,7 @@ pub enum WindowCommand {
     },
     Close,
     SetIcon {
-        icon: Image,
+        icon: Option<Handle<Image>>,
     },
 }
 
@@ -339,8 +338,7 @@ impl Window {
             canvas: window_descriptor.canvas.clone(),
             fit_canvas_to_parent: window_descriptor.fit_canvas_to_parent,
             command_queue: Vec::new(),
-            icon: DEFAULT_IMAGE_HANDLE.typed(),
-            is_icon_set: false,
+            icon: None,
         }
     }
     /// Get the window's [`WindowId`].
@@ -750,13 +748,14 @@ impl Window {
     }
 
     #[inline]
-    pub fn set_icon(&mut self, icon: Handle<Image>) {
-        self.icon = icon;
-        self.is_icon_set = false;
+    pub fn set_icon(&mut self, icon: Option<Handle<Image>>) {
+        self.icon = icon.clone();
+
+        self.command_queue.push(WindowCommand::SetIcon { icon });
     }
 
-    pub fn icon(&self) -> &Handle<Image> {
-        &self.icon
+    pub fn icon(&self) -> Option<&Handle<Image>> {
+        self.icon.as_ref()
     }
 }
 

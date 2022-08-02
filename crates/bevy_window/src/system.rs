@@ -1,10 +1,8 @@
-use crate::{Window, WindowCloseRequested, WindowCommand, WindowFocused, WindowId, Windows};
+use crate::{Window, WindowCloseRequested, WindowFocused, WindowId, Windows};
 
 use bevy_app::AppExit;
-use bevy_asset::Assets;
 use bevy_ecs::prelude::*;
 use bevy_input::{keyboard::KeyCode, Input};
-use bevy_rendertype::image::Image;
 
 /// Exit the application when there are no open windows.
 ///
@@ -53,19 +51,6 @@ pub fn close_on_esc(
         if input.just_pressed(KeyCode::Escape) {
             if let Some(window) = windows.get_mut(*focused) {
                 window.close();
-            }
-        }
-    }
-}
-
-pub fn set_icon_command(mut windows: ResMut<Windows>, images: Res<Assets<Image>>) {
-    for window in windows.iter_mut() {
-        if !window.is_icon_set {
-            if let Some(image) = images.get(window.icon()) {
-                window.command_queue.push(WindowCommand::SetIcon {
-                    icon: image.clone(),
-                });
-                window.is_icon_set = true;
             }
         }
     }

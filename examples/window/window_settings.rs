@@ -95,7 +95,7 @@ fn setup(
     commands.insert_resource(IconHandleWrench(icon_handle_wrench));
 
     let window = windows.get_primary_mut().unwrap();
-    window.set_icon(icon_handle_bevy);
+    window.set_icon(Some(icon_handle_bevy));
 }
 
 fn cycle_window_icon(
@@ -110,10 +110,10 @@ fn cycle_window_icon(
     let window = windows.get_primary_mut().unwrap();
 
     if input.just_pressed(KeyCode::I) {
-        if window.icon() == icon_handle_bevy {
-            window.set_icon(icon_handle_wrench.clone());
+        if Some(icon_handle_bevy) == window.icon() {
+            window.set_icon(Some(icon_handle_wrench.clone_weak()));
         } else {
-            window.set_icon(icon_handle_bevy.clone());
+            window.set_icon(Some(icon_handle_bevy.clone_weak()));
         }
     }
 }

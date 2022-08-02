@@ -4,6 +4,8 @@ mod web_resize;
 mod winit_config;
 mod winit_windows;
 
+use bevy_asset::Assets;
+use bevy_rendertype::image::Image;
 use winit::window::Icon;
 pub use winit_config::*;
 pub use winit_windows::*;
@@ -67,8 +69,10 @@ fn change_window(
     mut windows: ResMut<Windows>,
     mut window_dpi_changed_events: EventWriter<WindowScaleFactorChanged>,
     mut window_close_events: EventWriter<WindowClosed>,
+    images: Res<Assets<Image>>,
 ) {
     let mut removed_windows = vec![];
+    let mut requeue_icon = vec![];
     for bevy_window in windows.iter_mut() {
         let id = bevy_window.id();
         for command in bevy_window.drain_commands() {
@@ -221,25 +225,43 @@ fn change_window(
                     break;
                 }
                 bevy_window::WindowCommand::SetIcon { icon } => {
-                    let window = winit_windows.get_window(id).unwrap();
-                    let rgba = icon.data;
-                    let width = icon.texture_descriptor.size.width;
-                    let height = icon.texture_descriptor.size.width;
+                    let winit_window = winit_windows.get_window(id).unwrap();
 
-                    let icon = Icon::from_rgba(rgba, width, height).ok();
-                    window.set_window_icon(icon);
+                    match icon {
+                        Some(handle) => {
+                            match images.get(&handle) {
+                                Some(image) => {
+                                    let rgba = image.data.clone();
+                                    let width = image.texture_descriptor.size.width;
+                                    let height = image.texture_descriptor.size.width;
+
+                                    let icon = Icon::from_rgba(rgba, width, height).ok();
+                                    winit_window.set_window_icon(icon);
+                                }
+                                None => {
+                                    // Image has not loaded yet, requeue the set_icon request
+                                    requeue_icon.push((id, handle));
+                                }
+                            }
+                        }
+                        None => winit_window.set_window_icon(None),
+                    }
                 }
             }
         }
     }
-    if !removed_windows.is_empty() {
-        for id in removed_windows {
-            // Close the OS window. (The `Drop` impl actually closes the window)
-            let _ = winit_windows.remove_window(id);
-            // Clean up our own data structures
-            windows.remove(id);
-            window_close_events.send(WindowClosed { id });
-        }
+
+    for (id, icon_handle) in requeue_icon {
+        let bevy_window = windows.get_mut(id).unwrap();
+        bevy_window.set_icon(Some(icon_handle));
+    }
+
+    for id in removed_windows {
+        // Close the OS window. (The `Drop` impl actually closes the window)
+        let _ = winit_windows.remove_window(id);
+        // Clean up our own data structures
+        windows.remove(id);
+        window_close_events.send(WindowClosed { id });
     }
 }
 
