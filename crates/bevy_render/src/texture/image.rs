@@ -1,5 +1,4 @@
 pub use bevy_rendertype::image::*;
-pub use bevy_rendertype::image_texture_conversion::*;
 
 use crate::{
     render_asset::{PrepareAssetError, RenderAsset},
@@ -9,10 +8,7 @@ use crate::{
 use bevy_derive::{Deref, DerefMut};
 use bevy_ecs::system::{lifetimeless::SRes, SystemParamItem};
 use bevy_math::Vec2;
-use wgpu::{
-    ImageCopyTexture, ImageDataLayout, Origin3d, TextureFormat,
-    TextureViewDescriptor,
-};
+use wgpu::{ImageCopyTexture, ImageDataLayout, Origin3d, TextureFormat, TextureViewDescriptor};
 
 /// A rendering resource for the default image sampler which is set during renderer
 /// initialization.

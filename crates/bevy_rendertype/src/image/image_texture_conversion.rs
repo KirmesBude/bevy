@@ -4,7 +4,7 @@ use wgpu::{Extent3d, TextureDimension, TextureFormat};
 
 // TODO: fix name?
 /// Converts a [`DynamicImage`] to an [`Image`].
-pub fn image_to_texture(dyn_img: DynamicImage, is_srgb: bool) -> Image {
+pub(crate) fn image_to_texture(dyn_img: DynamicImage, is_srgb: bool) -> Image {
     use bevy_core::cast_slice;
     let width;
     let height;
@@ -169,7 +169,7 @@ pub fn image_to_texture(dyn_img: DynamicImage, is_srgb: bool) -> Image {
 
 /// Converts an [`Image`] to a [`DynamicImage`]. Not all [`TextureFormat`] are
 /// covered, therefore it will return `None` if the format is unsupported.
-pub fn texture_to_image(texture: &Image) -> Option<DynamicImage> {
+pub(crate) fn texture_to_image(texture: &Image) -> Option<DynamicImage> {
     match texture.texture_descriptor.format {
         TextureFormat::R8Unorm => ImageBuffer::from_raw(
             texture.texture_descriptor.size.width,

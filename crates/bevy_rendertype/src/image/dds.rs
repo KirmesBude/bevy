@@ -2,7 +2,7 @@ use ddsfile::{D3DFormat, Dds, DxgiFormat};
 use std::io::Cursor;
 use wgpu::{Extent3d, TextureDimension, TextureFormat};
 
-use super::image::{CompressedImageFormats, Image, TextureError};
+use super::{CompressedImageFormats, Image, TextureError};
 
 pub fn dds_buffer_to_image(
     buffer: &[u8],

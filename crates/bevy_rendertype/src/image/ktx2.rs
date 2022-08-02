@@ -17,7 +17,7 @@ use wgpu::{
     TextureViewDimension,
 };
 
-use super::image::{CompressedImageFormats, DataFormat, Image, TextureError, TranscodeFormat};
+use super::{CompressedImageFormats, DataFormat, Image, TextureError, TranscodeFormat};
 
 pub fn ktx2_buffer_to_image(
     buffer: &[u8],

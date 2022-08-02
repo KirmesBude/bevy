@@ -1,4 +1,3 @@
-
 mod fallback_image;
 #[cfg(feature = "hdr")]
 mod hdr_texture_loader;

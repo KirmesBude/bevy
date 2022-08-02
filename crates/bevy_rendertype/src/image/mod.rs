@@ -1,16 +1,30 @@
+#[cfg(feature = "basis-universal")]
+mod basis;
+#[cfg(feature = "dds")]
+mod dds;
+#[cfg(feature = "ktx2")]
+mod ktx2;
+
+pub(crate) mod image_texture_conversion;
+
+#[cfg(feature = "ktx2")]
+pub use self::ktx2::*;
+#[cfg(feature = "dds")]
+pub use dds::*;
+
 use bevy_asset::HandleUntyped;
 use bevy_math::Vec2;
 use bevy_reflect::TypeUuid;
-use crate::image_texture_conversion::image_to_texture;
+use image_texture_conversion::image_to_texture;
 use thiserror::Error;
 use wgpu::{Extent3d, TextureDimension, TextureFormat};
 
-#[cfg(feature = "basis-universal")]
-use crate::basis_buffer_to_image;
-#[cfg(feature = "dds")]
-use crate::dds_buffer_to_image;
 #[cfg(feature = "ktx2")]
-use crate::ktx2_buffer_to_image;
+use self::ktx2::ktx2_buffer_to_image;
+#[cfg(feature = "basis-universal")]
+use basis::basis_buffer_to_image;
+#[cfg(feature = "dds")]
+use dds::dds_buffer_to_image;
 
 pub const TEXTURE_ASSET_INDEX: u64 = 0;
 pub const SAMPLER_ASSET_INDEX: u64 = 1;
@@ -239,7 +253,7 @@ impl Image {
     /// - `TextureFormat::Rg8Unorm`
     /// - `TextureFormat::Rgba8UnormSrgb`
     pub fn convert(&self, new_format: TextureFormat) -> Option<Self> {
-        crate::image_texture_conversion::texture_to_image(self)
+        image_texture_conversion::texture_to_image(self)
             .and_then(|img| match new_format {
                 TextureFormat::R8Unorm => {
                     Some((image::DynamicImage::ImageLuma8(img.into_luma8()), false))
@@ -253,9 +267,7 @@ impl Image {
                 }
                 _ => None,
             })
-            .map(|(dyn_img, is_srgb)| {
-                crate::image_texture_conversion::image_to_texture(dyn_img, is_srgb)
-            })
+            .map(|(dyn_img, is_srgb)| image_texture_conversion::image_to_texture(dyn_img, is_srgb))
     }
 
     /// Load a bytes buffer in a [`Image`], according to type `image_type`, using the `image`
