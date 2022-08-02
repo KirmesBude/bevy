@@ -1,4 +1,6 @@
+use bevy_asset::Handle;
 use bevy_math::{DVec2, IVec2, UVec2, Vec2};
+use bevy_rendertype::image::{Image, DEFAULT_IMAGE_HANDLE};
 use bevy_utils::{tracing::warn, Uuid};
 use raw_window_handle::RawWindowHandle;
 
@@ -205,7 +207,9 @@ pub struct Window {
     mode: WindowMode,
     canvas: Option<String>,
     fit_canvas_to_parent: bool,
-    command_queue: Vec<WindowCommand>,
+    pub(crate) command_queue: Vec<WindowCommand>,
+    icon: Handle<Image>,
+    pub(crate) is_icon_set: bool,
 }
 /// A command to be sent to a window.
 ///
@@ -280,6 +284,9 @@ pub enum WindowCommand {
         resize_constraints: WindowResizeConstraints,
     },
     Close,
+    SetIcon {
+        icon: Image,
+    },
 }
 
 /// Defines the way a window is displayed.
@@ -332,6 +339,8 @@ impl Window {
             canvas: window_descriptor.canvas.clone(),
             fit_canvas_to_parent: window_descriptor.fit_canvas_to_parent,
             command_queue: Vec::new(),
+            icon: DEFAULT_IMAGE_HANDLE.typed(),
+            is_icon_set: false,
         }
     }
     /// Get the window's [`WindowId`].
@@ -738,6 +747,16 @@ impl Window {
     #[inline]
     pub fn fit_canvas_to_parent(&self) -> bool {
         self.fit_canvas_to_parent
+    }
+
+    #[inline]
+    pub fn set_icon(&mut self, icon: Handle<Image>) {
+        self.icon = icon;
+        self.is_icon_set = false;
+    }
+
+    pub fn icon(&self) -> &Handle<Image> {
+        &self.icon
     }
 }
 

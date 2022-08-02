@@ -111,6 +111,7 @@ impl Plugin for WindowPlugin {
         if settings.close_when_requested {
             app.add_system(close_when_requested);
         }
+        app.add_system(set_icon_command);
     }
 }
 

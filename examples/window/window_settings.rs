@@ -13,10 +13,11 @@ fn main() {
             ..default()
         })
         .add_plugins(DefaultPlugins)
+        .add_startup_system(setup)
         .add_system(change_title)
         .add_system(toggle_cursor)
         .add_system(cycle_cursor_icon)
-        .run();
+        .run(); 
 }
 
 /// This system will then change the title during execution
@@ -63,3 +64,13 @@ fn cycle_cursor_icon(
         window.set_cursor_icon(ICONS[*index]);
     }
 }
+
+fn setup(asset_server: ResMut<AssetServer>, mut windows: ResMut<Windows>) {
+    let icon_handle = asset_server.load("android-res/mipmap-mdpi/ic_launcher.png");
+
+    let window = windows.get_primary_mut().unwrap();
+    window.set_icon(icon_handle);
+
+    println!("setup called");
+}
+

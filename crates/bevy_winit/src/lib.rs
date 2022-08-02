@@ -4,6 +4,7 @@ mod web_resize;
 mod winit_config;
 mod winit_windows;
 
+use winit::window::Icon;
 pub use winit_config::*;
 pub use winit_windows::*;
 
@@ -218,6 +219,16 @@ fn change_window(
                     removed_windows.push(id);
                     // No need to run any further commands - this drops the rest of the commands, although the `bevy_window::Window` will be dropped later anyway
                     break;
+                }
+                bevy_window::WindowCommand::SetIcon { icon } => {
+                    println!("Act on SetIcon command");
+                    let window = winit_windows.get_window(id).unwrap();
+                    let rgba = icon.data;
+                    let width = icon.texture_descriptor.size.width;
+                    let height = icon.texture_descriptor.size.width;
+
+                    let icon = Icon::from_rgba(rgba, width, height).ok();
+                    window.set_window_icon(icon);
                 }
             }
         }
