@@ -435,14 +435,15 @@ fn spawn_birds(
                         color
                     };
                     (
-                        Sprite(
-                            bird_resources
+                        Sprite {
+                            texture: bird_resources
                                 .textures
                                 .choose(&mut bird_resources.material_rng)
                                 .unwrap()
                                 .clone(),
-                        ),
-                        SpriteProperties { color, ..default() },
+                            color,
+                            ..default()
+                        },
                         transform,
                         Bird { velocity },
                     )

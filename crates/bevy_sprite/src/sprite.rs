@@ -1,47 +1,13 @@
-use bevy_asset::{AssetId, Handle};
+use bevy_asset::Handle;
 use bevy_color::Color;
-use bevy_derive::{Deref, DerefMut};
 use bevy_ecs::{component::Component, reflect::ReflectComponent};
 use bevy_math::{Rect, Vec2};
 use bevy_reflect::{std_traits::ReflectDefault, Reflect};
 use bevy_render::{texture::Image, view::Visibility, world_sync::SyncToRenderWorld};
 use bevy_transform::components::Transform;
+use bevy_utils::default;
 
 use crate::TextureSlicer;
-
-/// Specifies the rendering properties of a sprite.
-///
-#[derive(Component, Debug, Default, Clone, Reflect)]
-#[reflect(Component, Default, Debug)]
-pub struct SpriteProperties {
-    /// The sprite's color tint
-    pub color: Color,
-    /// Flip the sprite along the `X` axis
-    pub flip_x: bool,
-    /// Flip the sprite along the `Y` axis
-    pub flip_y: bool,
-    /// An optional custom size for the sprite that will be used when rendering, instead of the size
-    /// of the sprite's image
-    pub custom_size: Option<Vec2>,
-    /// An optional rectangle representing the region of the sprite's image to render, instead of rendering
-    /// the full image. This is an easy one-off alternative to using a [`TextureAtlas`](crate::TextureAtlas).
-    ///
-    /// When used with a [`TextureAtlas`](crate::TextureAtlas), the rect
-    /// is offset by the atlas's minimal (top-left) corner position.
-    pub rect: Option<Rect>,
-    /// [`Anchor`] point of the sprite in the world
-    pub anchor: Anchor,
-}
-
-impl SpriteProperties {
-    /// Create a Sprite with a custom size
-    pub fn sized(custom_size: Vec2) -> Self {
-        SpriteProperties {
-            custom_size: Some(custom_size),
-            ..Default::default()
-        }
-    }
-}
 
 /// Controls how the image is altered when scaled.
 #[derive(Component, Debug, Clone, Reflect)]
@@ -114,30 +80,62 @@ impl Anchor {
 ///     mut images: ResMut<Assets<Image>>,
 ///     asset_server: Res<AssetServer>
 /// ) {
-///     commands.spawn((
-///         Sprite(images.add(Image::default())),
-///     ));
+///     commands.spawn(
+///         Sprite {
+///             texture: images.add(Image::default())),
+///             ..default()
+///         }
+///     );
 /// }
 /// ```
-#[derive(Component, Clone, Debug, Default, Deref, DerefMut, Reflect, PartialEq, Eq)]
+#[derive(Component, Clone, Debug, Default, Reflect, PartialEq)]
 #[reflect(Component, Default)]
-#[require(SpriteProperties, Transform, Visibility, SyncToRenderWorld)]
-pub struct Sprite(pub Handle<Image>);
+#[require(Transform, Visibility, SyncToRenderWorld)]
+pub struct Sprite {
+    /// The sprite's texture
+    pub texture: Handle<Image>,
+    /// The sprite's color tint
+    pub color: Color,
+    /// Flip the sprite along the `X` axis
+    pub flip_x: bool,
+    /// Flip the sprite along the `Y` axis
+    pub flip_y: bool,
+    /// An optional custom size for the sprite that will be used when rendering, instead of the size
+    /// of the sprite's image
+    pub custom_size: Option<Vec2>,
+    /// An optional rectangle representing the region of the sprite's image to render, instead of rendering
+    /// the full image. This is an easy one-off alternative to using a [`TextureAtlas`](crate::TextureAtlas).
+    ///
+    /// When used with a [`TextureAtlas`](crate::TextureAtlas), the rect
+    /// is offset by the atlas's minimal (top-left) corner position.
+    pub rect: Option<Rect>,
+    /// [`Anchor`] point of the sprite in the world
+    pub anchor: Anchor,
+}
+
+impl Sprite {
+    /// Set a custom size for the Sprite
+    pub fn with_size(self, custom_size: Vec2) -> Self {
+        Self {
+            custom_size: Some(custom_size),
+            ..self
+        }
+    }
+
+    /// Set a rect for the Sprite
+    pub fn with_rect(self, rect: Rect) -> Self {
+        Self {
+            rect: Some(rect),
+            ..self
+        }
+    }
+}
 
 impl From<Handle<Image>> for Sprite {
     fn from(handle: Handle<Image>) -> Self {
-        Self(handle)
-    }
-}
-
-impl From<Sprite> for AssetId<Image> {
-    fn from(texture: Sprite) -> Self {
-        texture.id()
-    }
-}
-
-impl From<&Sprite> for AssetId<Image> {
-    fn from(texture: &Sprite) -> Self {
-        texture.id()
+        Self {
+            texture: handle,
+            ..default()
+        }
     }
 }

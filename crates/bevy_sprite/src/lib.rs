@@ -30,7 +30,7 @@ pub mod prelude {
     #[doc(hidden)]
     pub use crate::{
         bundle::SpriteBundle,
-        sprite::{ImageScaleMode, Sprite, SpriteProperties},
+        sprite::{ImageScaleMode, Sprite},
         texture_atlas::{TextureAtlas, TextureAtlasLayout, TextureAtlasSources},
         texture_slice::{BorderRect, SliceScaleMode, TextureSlice, TextureSlicer},
         ColorMaterial, ColorMesh2dBundle, TextureAtlasBuilder,
@@ -91,7 +91,7 @@ pub type WithMesh2d = With<Mesh2dHandle>;
 
 /// A convenient alias for `Or<With<SpriteProperties>, With<SpriteSource>>`, for use with
 /// [`bevy_render::view::VisibleEntities`].
-pub type WithSprite = Or<(With<SpriteProperties>, With<SpriteSource>)>;
+pub type WithSprite = Or<(With<Sprite>, With<SpriteSource>)>;
 
 impl Plugin for SpritePlugin {
     fn build(&self, app: &mut App) {
@@ -110,7 +110,6 @@ impl Plugin for SpritePlugin {
         app.init_asset::<TextureAtlasLayout>()
             .register_asset_reflect::<TextureAtlasLayout>()
             .register_type::<Sprite>()
-            .register_type::<SpriteProperties>()
             .register_type::<ImageScaleMode>()
             .register_type::<TextureSlicer>()
             .register_type::<Anchor>()
@@ -190,13 +189,9 @@ pub fn calculate_bounds_2d(
     atlases: Res<Assets<TextureAtlasLayout>>,
     meshes_without_aabb: Query<(Entity, &Mesh2dHandle), (Without<Aabb>, Without<NoFrustumCulling>)>,
     sprites_to_recalculate_aabb: Query<
-        (Entity, &SpriteProperties, &Sprite, Option<&TextureAtlas>),
+        (Entity, &Sprite, Option<&TextureAtlas>),
         (
-            Or<(
-                Without<Aabb>,
-                Changed<SpriteProperties>,
-                Changed<TextureAtlas>,
-            )>,
+            Or<(Without<Aabb>, Changed<Sprite>, Changed<TextureAtlas>)>,
             Without<NoFrustumCulling>,
         ),
     >,
@@ -208,13 +203,13 @@ pub fn calculate_bounds_2d(
             }
         }
     }
-    for (entity, sprite, texture_handle, atlas) in &sprites_to_recalculate_aabb {
+    for (entity, sprite, atlas) in &sprites_to_recalculate_aabb {
         if let Some(size) = sprite
             .custom_size
             .or_else(|| sprite.rect.map(|rect| rect.size()))
             .or_else(|| match atlas {
                 // We default to the texture size for regular sprites
-                None => images.get(texture_handle).map(Image::size_f32),
+                None => images.get(&sprite.texture).map(Image::size_f32),
                 // We default to the drawn rect for atlas sprites
                 Some(atlas) => atlas
                     .texture_rect(&atlases)
@@ -268,7 +263,7 @@ mod test {
         app.add_systems(Update, calculate_bounds_2d);
 
         // Add entities
-        let entity = app.world_mut().spawn(Sprite(image_handle)).id();
+        let entity = app.world_mut().spawn(Sprite::from(image_handle)).id();
 
         // Verify that the entity does not have an AABB
         assert!(!app
@@ -308,13 +303,7 @@ mod test {
         // Add entities
         let entity = app
             .world_mut()
-            .spawn((
-                Sprite(image_handle),
-                SpriteProperties {
-                    custom_size: Some(Vec2::ZERO),
-                    ..default()
-                },
-            ))
+            .spawn(Sprite::from(image_handle).with_size(Vec2::ZERO))
             .id();
 
         // Create initial AABB
@@ -334,7 +323,7 @@ mod test {
             .get_entity_mut(entity)
             .expect("Could not find entity");
         let mut sprite = binding
-            .get_mut::<SpriteProperties>()
+            .get_mut::<Sprite>()
             .expect("Could not find sprite component of entity");
         sprite.custom_size = Some(Vec2::ONE);
 
@@ -373,14 +362,12 @@ mod test {
         // Add entities
         let entity = app
             .world_mut()
-            .spawn((
-                Sprite(image_handle),
-                SpriteProperties {
-                    rect: Some(Rect::new(0., 0., 0.5, 1.)),
-                    anchor: Anchor::TopRight,
-                    ..default()
-                },
-            ))
+            .spawn(Sprite {
+                texture: image_handle,
+                rect: Some(Rect::new(0., 0., 0.5, 1.)),
+                anchor: Anchor::TopRight,
+                ..default()
+            })
             .id();
 
         // Create AABB

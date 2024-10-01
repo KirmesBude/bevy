@@ -82,8 +82,8 @@ fn setup(
             timer.set_elapsed(Duration::from_secs_f32(rng.gen::<f32>()));
 
             commands.spawn((
-                Sprite(texture_handle.clone()),
-                SpriteProperties {
+                Sprite {
+                    texture: texture_handle.clone(),
                     custom_size: Some(tile_size),
                     ..default()
                 },
@@ -134,11 +134,7 @@ impl Default for PrintingTimer {
 }
 
 // System for printing the number of sprites on every tick of the timer
-fn print_sprite_count(
-    time: Res<Time>,
-    mut timer: Local<PrintingTimer>,
-    sprites: Query<&SpriteProperties>,
-) {
+fn print_sprite_count(time: Res<Time>, mut timer: Local<PrintingTimer>, sprites: Query<&Sprite>) {
     timer.tick(time.delta());
 
     if timer.just_finished() {

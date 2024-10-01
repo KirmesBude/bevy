@@ -73,12 +73,9 @@ fn setup_2d(mut commands: Commands) {
         },
         ..default()
     });
-    commands.spawn((
-        Sprite::default(),
-        SpriteProperties {
-            color: Color::srgb(0.25, 0.25, 0.75),
-            custom_size: Some(Vec2::new(50.0, 50.0)),
-            ..default()
-        },
-    ));
+    commands.spawn((Sprite {
+        color: Color::srgb(0.25, 0.25, 0.75),
+        custom_size: Some(Vec2::new(50.0, 50.0)),
+        ..default()
+    },));
 }

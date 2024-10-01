@@ -75,14 +75,14 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         // This marker component ensures we can easily find either of the Birds by using With and
         // Without query filters.
         Left,
-        Sprite(texture_left),
+        Sprite::from(texture_left),
         Transform::from_xyz(-200.0, 0.0, 0.0),
         bird_left,
     ));
 
     commands.spawn((
         Name::new("Bird Right"),
-        Sprite(asset_server.load(bird_right.get_texture_path())),
+        Sprite::from(asset_server.load(bird_right.get_texture_path())),
         Transform::from_xyz(200.0, 0.0, 0.0),
         bird_right,
     ));
@@ -131,18 +131,18 @@ fn alter_handle(
     // Modify the handle associated with the Bird on the right side. Note that we will only
     // have to load the same path from storage media once: repeated attempts will re-use the
     // asset.
-    sprite_texture.0 = asset_server.load(bird.get_texture_path());
+    sprite_texture.texture = asset_server.load(bird.get_texture_path());
 }
 
 fn alter_asset(mut images: ResMut<Assets<Image>>, left_bird: Query<&Sprite, With<Left>>) {
     // It's convenient to retrieve the asset handle stored with the bird on the left. However,
     // we could just as easily have retained this in a resource or a dedicated component.
-    let Ok(sprite_texture) = left_bird.get_single() else {
+    let Ok(sprite) = left_bird.get_single() else {
         return;
     };
 
     // Obtain a mutable reference to the Image asset.
-    let Some(image) = images.get_mut(sprite_texture) else {
+    let Some(image) = images.get_mut(&sprite.texture) else {
         return;
     };
 

@@ -74,8 +74,8 @@ fn spawn_sprites(
     for (label, text_style, size, scale_mode) in cases {
         position.x += 0.5 * size.x;
         let mut cmd = commands.spawn((
-            Sprite(texture_handle.clone()),
-            SpriteProperties {
+            Sprite {
+                texture: texture_handle.clone(),
                 custom_size: Some(size),
                 ..default()
             },

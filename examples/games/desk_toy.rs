@@ -135,7 +135,10 @@ fn setup(
 
     // Spawn the Bevy logo sprite
     commands
-        .spawn((Sprite(asset_server.load("branding/icon.png")), BevyLogo))
+        .spawn((
+            Sprite::from(asset_server.load("branding/icon.png")),
+            BevyLogo,
+        ))
         .with_children(|commands| {
             // For each bird eye
             for (x, y, radius) in BIRDS_EYES {

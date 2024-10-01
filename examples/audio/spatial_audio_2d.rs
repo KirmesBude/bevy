@@ -53,8 +53,7 @@ fn setup(
         .with_children(|parent| {
             // left ear
             parent.spawn((
-                Sprite::default(),
-                SpriteProperties {
+                Sprite {
                     color: RED.into(),
                     custom_size: Some(Vec2::splat(20.0)),
                     ..default()
@@ -64,8 +63,7 @@ fn setup(
 
             // right ear
             parent.spawn((
-                Sprite::default(),
-                SpriteProperties {
+                Sprite {
                     color: LIME.into(),
                     custom_size: Some(Vec2::splat(20.0)),
                     ..default()

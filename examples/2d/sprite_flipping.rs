@@ -11,14 +11,12 @@ fn main() {
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
-    commands.spawn((
-        Sprite(asset_server.load("branding/bevy_bird_dark.png")),
-        SpriteProperties {
-            // Flip the logo to the left
-            flip_x: true,
-            // And don't flip it upside-down ( the default )
-            flip_y: false,
-            ..default()
-        },
-    ));
+    commands.spawn((Sprite {
+        texture: asset_server.load("branding/bevy_bird_dark.png"),
+        // Flip the logo to the left
+        flip_x: true,
+        // And don't flip it upside-down ( the default )
+        flip_y: false,
+        ..default()
+    },));
 }

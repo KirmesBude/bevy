@@ -68,8 +68,8 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     let image1 = images.add(image);
 
     commands.spawn((
-        Sprite(image0.clone()),
-        SpriteProperties {
+        Sprite {
+            texture: image0.clone(),
             custom_size: Some(Vec2::new(SIZE.0 as f32, SIZE.1 as f32)),
             ..default()
         },
@@ -86,10 +86,10 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
 // Switch texture to display every frame to show the one that was written to most recently.
 fn switch_textures(images: Res<GameOfLifeImages>, mut displayed: Query<&mut Sprite>) {
     let mut displayed = displayed.single_mut();
-    if displayed.0 == images.texture_a {
-        displayed.0 = images.texture_b.clone_weak();
+    if displayed.texture == images.texture_a {
+        displayed.texture = images.texture_b.clone_weak();
     } else {
-        displayed.0 = images.texture_a.clone_weak();
+        displayed.texture = images.texture_a.clone_weak();
     }
 }
 

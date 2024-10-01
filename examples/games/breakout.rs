@@ -105,7 +105,7 @@ struct CollisionSound(Handle<AudioSource>);
 // This bundle is a collection of the components that define a "wall" in our game
 #[derive(Bundle)]
 struct WallBundle {
-    sprite_components: (Sprite, SpriteProperties, Transform),
+    sprite_components: (Sprite, Transform),
     collider: Collider,
 }
 
@@ -153,8 +153,7 @@ impl WallBundle {
     fn new(location: WallLocation) -> WallBundle {
         WallBundle {
             sprite_components: (
-                Sprite::default(),
-                SpriteProperties {
+                Sprite {
                     color: WALL_COLOR,
                     ..default()
                 },
@@ -199,8 +198,7 @@ fn setup(
     let paddle_y = BOTTOM_WALL + GAP_BETWEEN_PADDLE_AND_FLOOR;
 
     commands.spawn((
-        Sprite::default(),
-        SpriteProperties {
+        Sprite {
             color: PADDLE_COLOR,
             ..default()
         },
@@ -294,8 +292,7 @@ fn setup(
 
             // brick
             commands.spawn((
-                Sprite::default(),
-                SpriteProperties {
+                Sprite {
                     color: BRICK_COLOR,
                     ..default()
                 },

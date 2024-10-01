@@ -1,6 +1,6 @@
 #![expect(deprecated)]
 
-use crate::{Sprite, SpriteProperties};
+use crate::Sprite;
 use bevy_ecs::bundle::Bundle;
 use bevy_render::{
     view::{InheritedVisibility, ViewVisibility, Visibility},
@@ -21,14 +21,12 @@ use bevy_transform::components::{GlobalTransform, Transform};
     note = "Use the `Sprite` component instead. Inserting them will now also insert the other components required by them automatically."
 )]
 pub struct SpriteBundle {
-    /// Specifies the rendering properties of the sprite, such as color tint and flip.
-    pub sprite: SpriteProperties,
+    /// Specifies the rendering properties of the sprite, such as color tint and flip and reference-counted handle to the image asset to be draw.
+    pub sprite: Sprite,
     /// The local transform of the sprite, relative to its parent.
     pub transform: Transform,
     /// The absolute transform of the sprite. This should generally not be written to directly.
     pub global_transform: GlobalTransform,
-    /// A reference-counted handle to the image asset to be drawn.
-    pub texture: Sprite,
     /// User indication of whether an entity is visible
     pub visibility: Visibility,
     /// Inherited visibility of an entity.

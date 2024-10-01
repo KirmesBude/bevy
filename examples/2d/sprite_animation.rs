@@ -104,7 +104,7 @@ fn setup(
 
     // create the first (left-hand) sprite
     commands.spawn((
-        Sprite(texture.clone()),
+        Sprite::from(texture.clone()),
         Transform::from_scale(Vec3::splat(6.0)).with_translation(Vec3::new(-50.0, 0.0, 0.0)),
         TextureAtlas {
             layout: texture_atlas_layout.clone(),
@@ -119,7 +119,7 @@ fn setup(
 
     // create the second (right-hand) sprite
     commands.spawn((
-        Sprite(texture),
+        Sprite::from(texture),
         Transform::from_scale(Vec3::splat(6.0)).with_translation(Vec3::new(50.0, 0.0, 0.0)),
         TextureAtlas {
             layout: texture_atlas_layout.clone(),
