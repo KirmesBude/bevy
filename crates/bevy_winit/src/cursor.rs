@@ -171,7 +171,7 @@ fn on_remove_cursor_icon(trigger: Trigger<OnRemove, CursorIcon>, mut commands: C
 
 /// Returns the image data as a `Vec<u8>`.
 /// Only supports rgba8 and rgba32float formats.
-fn image_to_rgba_pixels(image: &Image) -> Option<Vec<u8>> {
+pub(crate) fn image_to_rgba_pixels(image: &Image) -> Option<Vec<u8>> {
     match image.texture_descriptor.format {
         TextureFormat::Rgba8Unorm
         | TextureFormat::Rgba8UnormSrgb

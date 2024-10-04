@@ -23,10 +23,9 @@ use core::marker::PhantomData;
 use winit::{
     application::ApplicationHandler,
     dpi::PhysicalSize,
-    event,
-    event::{DeviceEvent, DeviceId, StartCause, WindowEvent},
+    event::{self, DeviceEvent, DeviceId, StartCause, WindowEvent},
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
-    window::WindowId,
+    window::{Icon, WindowId},
 };
 
 use bevy_window::{
@@ -167,6 +166,12 @@ pub enum CursorSource {
 /// loop.
 #[derive(Component, Debug)]
 pub struct PendingCursor(pub Option<CursorSource>);
+
+/// Component that indicates what icon should be used for a window. Inserted
+/// automatically after changing `WindowIcon` and consumed by the winit event
+/// loop.
+#[derive(Component, Debug)]
+pub struct PendingWindowIcon(pub Option<Icon>);
 
 impl<T: Event> ApplicationHandler<T> for WinitAppRunnerState<T> {
     fn new_events(&mut self, event_loop: &ActiveEventLoop, cause: StartCause) {
@@ -549,6 +554,7 @@ impl<T: Event> ApplicationHandler<T> for WinitAppRunnerState<T> {
             if !self.ran_update_since_last_redraw || all_invisible {
                 self.run_app_update();
                 self.update_cursors(event_loop);
+                self.update_window_icons();
                 self.ran_update_since_last_redraw = true;
             } else {
                 self.redraw_requested = true;
@@ -809,6 +815,25 @@ impl<T: Event> WinitAppRunnerState<T> {
                 CursorSource::System(system_cursor) => system_cursor.into(),
             };
             winit_window.set_cursor(final_cursor);
+        }
+    }
+
+    fn update_window_icons(&mut self) {
+        let mut windows_state: SystemState<(
+            NonSendMut<WinitWindows>,
+            Query<(Entity, &mut PendingWindowIcon), Changed<PendingWindowIcon>>,
+        )> = SystemState::new(self.world_mut());
+        let (winit_windows, mut windows) = windows_state.get_mut(self.world_mut());
+
+        for (entity, mut pending_window_icon) in windows.iter_mut() {
+            let Some(winit_window) = winit_windows.get_window(entity) else {
+                continue;
+            };
+            let Some(pending_window_icon) = pending_window_icon.0.take() else {
+                continue;
+            };
+
+            winit_window.set_window_icon(Some(pending_window_icon));
         }
     }
 }

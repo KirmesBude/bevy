@@ -213,9 +213,12 @@ fn cycle_cursor_icon(
 struct WindowIcons(Vec<WindowIcon>);
 
 fn init_window_icons(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.insert_resource(WindowIcons(vec![WindowIcon(
-        asset_server.load("branding/icon.png"),
-    )]));
+    commands.insert_resource(WindowIcons(vec![
+        WindowIcon(Some(asset_server.load("branding/icon.png"))),
+        WindowIcon(Some(asset_server.load("textures/Game Icons/exitRight.png"))),
+        WindowIcon(Some(asset_server.load("textures/Game Icons/right.png"))),
+        WindowIcon(Some(asset_server.load("textures/Game Icons/wrench.png"))),
+    ]));
 }
 
 /// This system cycles the window's icon through a small set of icons when clicking
@@ -228,7 +231,7 @@ fn cycle_window_icon(
 ) {
     let window_entity = windows.single();
 
-    if input.just_pressed(MouseButton::Right) {
+    if input.just_pressed(MouseButton::Left) {
         *index = (*index + 1) % window_icons.0.len();
         commands
             .entity(window_entity)
