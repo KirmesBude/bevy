@@ -6,7 +6,10 @@ use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
     window::{CursorGrabMode, PresentMode, SystemCursorIcon, WindowLevel, WindowTheme},
-    winit::cursor::{CursorIcon, CustomCursor},
+    winit::{
+        cursor::{CursorIcon, CustomCursor},
+        window_icon::WindowIcon,
+    },
 };
 
 fn main() {
@@ -38,7 +41,7 @@ fn main() {
             LogDiagnosticsPlugin::default(),
             FrameTimeDiagnosticsPlugin,
         ))
-        .add_systems(Startup, init_cursor_icons)
+        .add_systems(Startup, (init_cursor_icons, init_window_icons))
         .add_systems(
             Update,
             (
@@ -50,6 +53,7 @@ fn main() {
                 cycle_cursor_icon,
                 switch_level,
                 make_visible,
+                cycle_window_icon,
             ),
         )
         .run();
@@ -202,5 +206,41 @@ fn cycle_cursor_icon(
         commands
             .entity(window_entity)
             .insert(cursor_icons.0[*index].clone());
+    }
+}
+
+#[derive(Resource)]
+struct WindowIcons(Vec<WindowIcon>);
+
+fn init_window_icons(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.insert_resource(WindowIcons(vec![WindowIcon(
+        asset_server.load("branding/icon.png"),
+    )]));
+}
+
+/// This system cycles the window's icon through a small set of icons when clicking
+fn cycle_window_icon(
+    mut commands: Commands,
+    windows: Query<Entity, With<Window>>,
+    input: Res<ButtonInput<MouseButton>>,
+    mut index: Local<usize>,
+    window_icons: Res<WindowIcons>,
+) {
+    let window_entity = windows.single();
+
+    if input.just_pressed(MouseButton::Right) {
+        *index = (*index + 1) % window_icons.0.len();
+        commands
+            .entity(window_entity)
+            .insert(window_icons.0[*index].clone());
+    } else if input.just_pressed(MouseButton::Right) {
+        *index = if *index == 0 {
+            window_icons.0.len() - 1
+        } else {
+            *index - 1
+        };
+        commands
+            .entity(window_entity)
+            .insert(window_icons.0[*index].clone());
     }
 }
