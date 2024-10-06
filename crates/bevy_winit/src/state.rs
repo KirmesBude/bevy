@@ -1,5 +1,6 @@
 use approx::relative_eq;
 use bevy_app::{App, AppExit, PluginsState};
+#[cfg(feature = "custom_cursor")]
 use bevy_asset::AssetId;
 use bevy_ecs::{
     change_detection::{DetectChanges, NonSendMut, Res},
@@ -9,16 +10,19 @@ use bevy_ecs::{
     system::SystemState,
     world::FromWorld,
 };
+#[cfg(feature = "custom_cursor")]
+use bevy_image::Image;
 use bevy_input::{
     gestures::*,
     mouse::{MouseButtonInput, MouseMotion, MouseScrollUnit, MouseWheel},
 };
 use bevy_log::{error, trace, warn};
 use bevy_math::{ivec2, DVec2, Vec2};
-use bevy_render::texture::Image;
 #[cfg(not(target_arch = "wasm32"))]
 use bevy_tasks::tick_global_task_pools_on_main_thread;
-use bevy_utils::{HashMap, Instant};
+#[cfg(feature = "custom_cursor")]
+use bevy_utils::HashMap;
+use bevy_utils::Instant;
 use core::marker::PhantomData;
 use winit::{
     application::ApplicationHandler,
@@ -89,6 +93,7 @@ struct WinitAppRunnerState<T: Event> {
 
 impl<T: Event> WinitAppRunnerState<T> {
     fn new(mut app: App) -> Self {
+        #[cfg(feature = "custom_cursor")]
         app.add_event::<T>().init_resource::<CustomCursorCache>();
 
         let event_writer_system_state: SystemState<(
@@ -135,6 +140,7 @@ impl<T: Event> WinitAppRunnerState<T> {
     }
 }
 
+#[cfg(feature = "custom_cursor")]
 /// Identifiers for custom cursors used in caching.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum CustomCursorCacheKey {
@@ -145,11 +151,13 @@ pub enum CustomCursorCacheKey {
     Url(String),
 }
 
+#[cfg(feature = "custom_cursor")]
 /// Caches custom cursors. On many platforms, creating custom cursors is expensive, especially on
 /// the web.
 #[derive(Debug, Clone, Default, Resource)]
 pub struct CustomCursorCache(pub HashMap<CustomCursorCacheKey, winit::window::CustomCursor>);
 
+#[cfg(feature = "custom_cursor")]
 /// A source for a cursor. Consumed by the winit event loop.
 #[derive(Debug)]
 pub enum CursorSource {
@@ -161,6 +169,7 @@ pub enum CursorSource {
     System(winit::window::CursorIcon),
 }
 
+#[cfg(feature = "custom_cursor")]
 /// Component that indicates what cursor should be used for a window. Inserted
 /// automatically after changing `CursorIcon` and consumed by the winit event
 /// loop.
@@ -553,6 +562,7 @@ impl<T: Event> ApplicationHandler<T> for WinitAppRunnerState<T> {
             // This is a temporary solution, full solution is mentioned here: https://github.com/bevyengine/bevy/issues/1343#issuecomment-770091684
             if !self.ran_update_since_last_redraw || all_invisible {
                 self.run_app_update();
+                #[cfg(feature = "custom_cursor")]
                 self.update_cursors(event_loop);
                 self.update_window_icons();
                 self.ran_update_since_last_redraw = true;
@@ -782,6 +792,7 @@ impl<T: Event> WinitAppRunnerState<T> {
             .send_batch(buffered_events);
     }
 
+    #[cfg(feature = "custom_cursor")]
     fn update_cursors(&mut self, event_loop: &ActiveEventLoop) {
         let mut windows_state: SystemState<(
             NonSendMut<WinitWindows>,
