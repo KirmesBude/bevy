@@ -12,8 +12,8 @@ use bevy_ecs::{
     system::{Commands, Local, Query, Res},
     world::{OnRemove, Ref},
 };
+use bevy_image::Image;
 use bevy_reflect::{std_traits::ReflectDefault, Reflect};
-use bevy_render::texture::Image;
 use bevy_utils::{tracing::warn, HashSet};
 use bevy_window::Window;
 use winit::window::Icon;

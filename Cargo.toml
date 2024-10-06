@@ -133,6 +133,7 @@ default = [
   "sysinfo_plugin",
   "android-game-activity",
   "custom_cursor",
+  "custom_window_icon",
 ]
 
 # Provides an implementation for picking sprites
@@ -420,6 +421,9 @@ reflect_functions = ["bevy_internal/reflect_functions"]
 
 # Enable winit custom cursor support
 custom_cursor = ["bevy_internal/custom_cursor"]
+
+# Enable winit custom window icon support
+custom_window_icon = ["bevy_internal/custom_window_icon"]
 
 [dependencies]
 bevy_internal = { path = "crates/bevy_internal", version = "0.15.0-dev", default-features = false }

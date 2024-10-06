@@ -19,6 +19,7 @@ android-native-activity = ["winit/android-native-activity"]
 android-game-activity = ["winit/android-game-activity"]
 
 custom_cursor = ["bevy_image", "bevy_asset", "bytemuck", "wgpu-types"]
+custom_window_icon = ["bevy_image", "bevy_asset", "bytemuck", "wgpu-types"]
 
 
 [dependencies]

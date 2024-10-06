@@ -17,7 +17,6 @@ extern crate alloc;
 use bevy_derive::Deref;
 use bevy_window::{RawHandleWrapperHolder, WindowEvent};
 use core::marker::PhantomData;
-use window_icon::WindowIconPlugin;
 use winit::event_loop::EventLoop;
 
 use bevy_a11y::AccessibilityRequested;
@@ -47,6 +46,7 @@ mod converters;
 pub mod cursor;
 mod state;
 mod system;
+#[cfg(feature = "custom_window_icon")]
 pub mod window_icon;
 mod winit_config;
 mod winit_monitors;
@@ -132,9 +132,11 @@ impl<T: Event> Plugin for WinitPlugin<T> {
                     .chain(),
             );
 
-        app.add_plugins((AccessKitPlugin, WindowIconPlugin));
+        app.add_plugins(AccessKitPlugin);
         #[cfg(feature = "custom_cursor")]
         app.add_plugins(cursor::CursorPlugin);
+        #[cfg(feature = "custom_window_icon")]
+        app.add_plugins(window_icon::WindowIconPlugin);
 
         let event_loop = event_loop_builder
             .build()
