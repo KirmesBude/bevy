@@ -6,7 +6,7 @@ use crate::{
     WinitCustomCursor,
 };
 use bevy_app::{App, Last, Plugin};
-use bevy_asset::{Assets, Handle};
+use bevy_asset::{Assets, Handle, RenderAssetUsages};
 use bevy_ecs::{
     change_detection::DetectChanges,
     component::Component,
@@ -18,6 +18,7 @@ use bevy_ecs::{
     world::{OnRemove, Ref},
 };
 use bevy_image::Image;
+use bevy_math::{URect, UVec2};
 use bevy_reflect::{std_traits::ReflectDefault, Reflect};
 use bevy_utils::{tracing::warn, HashSet};
 use bevy_window::{SystemCursorIcon, Window};
@@ -113,9 +114,27 @@ fn update_cursors(
                         queue.insert(entity);
                         continue;
                     };
-                    let Some(rgba) = image_to_rgba_pixels(image) else {
-                        warn!("Cursor image {handle:?} not accepted because it's not rgba8 or rgba32float format");
-                        continue;
+
+                    let width = image.texture_descriptor.size.width;
+                    let height = image.texture_descriptor.size.height;
+                    let rect = URect::from_corners(UVec2::ZERO, UVec2::new(width, height - 1));
+                    let mut rgba = Image::new_fill(
+                        image.texture_descriptor.size,
+                        image.texture_descriptor.dimension,
+                        &[0, 0, 0, 0],
+                        TextureFormat::Rgba8UnormSrgb,
+                        RenderAssetUsages::MAIN_WORLD,
+                    );
+                    let rgba = match rgba
+                        .rect_bytes_mut(rect, 1)
+                        .unwrap()
+                        .translate_from(image.rect_bytes(rect, 1).unwrap())
+                    {
+                        Ok(_) => rgba.data,
+                        Err(err) => {
+                            warn!("Cursor image {handle:?} conversion failed: {err}");
+                            continue;
+                        }
                     };
 
                     let width = image.texture_descriptor.size.width;
@@ -168,28 +187,4 @@ fn on_remove_cursor_icon(trigger: Trigger<OnRemove, CursorIcon>, mut commands: C
         .try_insert(PendingCursor(Some(CursorSource::System(
             convert_system_cursor_icon(SystemCursorIcon::Default),
         ))));
-}
-
-/// Returns the image data as a `Vec<u8>`.
-/// Only supports rgba8 and rgba32float formats.
-pub(crate) fn image_to_rgba_pixels(image: &Image) -> Option<Vec<u8>> {
-    match image.texture_descriptor.format {
-        TextureFormat::Rgba8Unorm
-        | TextureFormat::Rgba8UnormSrgb
-        | TextureFormat::Rgba8Snorm
-        | TextureFormat::Rgba8Uint
-        | TextureFormat::Rgba8Sint => Some(image.data.clone()),
-        TextureFormat::Rgba32Float => Some(
-            image
-                .data
-                .chunks(4)
-                .map(|chunk| {
-                    let chunk = chunk.try_into().unwrap();
-                    let num = bytemuck::cast_ref::<[u8; 4], f32>(chunk);
-                    (num * 255.0) as u8
-                })
-                .collect(),
-        ),
-        _ => None,
-    }
 }

@@ -1,7 +1,7 @@
 //! Components to customize winit window icon
 
 use bevy_app::{App, Last, Plugin};
-use bevy_asset::{Assets, Handle};
+use bevy_asset::{Assets, Handle, RenderAssetUsages};
 use bevy_ecs::{
     change_detection::DetectChanges,
     component::Component,
@@ -13,12 +13,14 @@ use bevy_ecs::{
     world::{OnRemove, Ref},
 };
 use bevy_image::Image;
+use bevy_math::{URect, UVec2};
 use bevy_reflect::{std_traits::ReflectDefault, Reflect};
 use bevy_utils::{tracing::warn, HashSet};
 use bevy_window::Window;
+use wgpu_types::TextureFormat;
 use winit::window::Icon;
 
-use crate::{cursor::image_to_rgba_pixels, state::PendingWindowIcon};
+use crate::state::PendingWindowIcon;
 
 pub(crate) struct WindowIconPlugin;
 
@@ -56,13 +58,29 @@ fn update_icons(
                     queue.insert(entity);
                     continue;
                 };
-                let Some(rgba) = image_to_rgba_pixels(image) else {
-                    warn!("Window icon image {handle:?} not accepted because it's not rgba8 or rgba32float format");
-                    continue;
-                };
 
                 let width = image.texture_descriptor.size.width;
                 let height = image.texture_descriptor.size.height;
+                let rect = URect::from_corners(UVec2::ZERO, UVec2::new(width, height - 1));
+                let mut rgba = Image::new_fill(
+                    image.texture_descriptor.size,
+                    image.texture_descriptor.dimension,
+                    &[0, 0, 0, 0],
+                    TextureFormat::Rgba8UnormSrgb,
+                    RenderAssetUsages::MAIN_WORLD,
+                );
+                let rgba = match rgba
+                    .rect_bytes_mut(rect, 1)
+                    .unwrap()
+                    .translate_from(image.rect_bytes(rect, 1).unwrap())
+                {
+                    Ok(_) => rgba.data,
+                    Err(err) => {
+                        warn!("Window icon image {handle:?} conversion failed: {err}");
+                        continue;
+                    }
+                };
+
                 let icon = match Icon::from_rgba(rgba, width, height) {
                     Ok(icon) => icon,
                     Err(err) => {
