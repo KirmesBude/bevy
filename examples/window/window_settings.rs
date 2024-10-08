@@ -214,10 +214,10 @@ struct WindowIcons(Vec<WindowIcon>);
 
 fn init_window_icons(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.insert_resource(WindowIcons(vec![
-        WindowIcon(Some(asset_server.load("branding/icon.png"))),
-        WindowIcon(Some(asset_server.load("textures/Game Icons/exitRight.png"))),
-        WindowIcon(Some(asset_server.load("textures/Game Icons/right.png"))),
-        WindowIcon(Some(asset_server.load("textures/Game Icons/wrench.png"))),
+        WindowIcon(asset_server.load("branding/icon.png")),
+        WindowIcon(asset_server.load("textures/Game Icons/exitRight.png")),
+        WindowIcon(asset_server.load("textures/Game Icons/right.png")),
+        WindowIcon(asset_server.load("textures/Game Icons/wrench.png")),
     ]));
 }
 
@@ -225,23 +225,14 @@ fn init_window_icons(mut commands: Commands, asset_server: Res<AssetServer>) {
 fn cycle_window_icon(
     mut commands: Commands,
     windows: Query<Entity, With<Window>>,
-    input: Res<ButtonInput<MouseButton>>,
+    input: Res<ButtonInput<KeyCode>>,
     mut index: Local<usize>,
     window_icons: Res<WindowIcons>,
 ) {
     let window_entity = windows.single();
 
-    if input.just_pressed(MouseButton::Left) {
+    if input.just_pressed(KeyCode::KeyI) {
         *index = (*index + 1) % window_icons.0.len();
-        commands
-            .entity(window_entity)
-            .insert(window_icons.0[*index].clone());
-    } else if input.just_pressed(MouseButton::Right) {
-        *index = if *index == 0 {
-            window_icons.0.len() - 1
-        } else {
-            *index - 1
-        };
         commands
             .entity(window_entity)
             .insert(window_icons.0[*index].clone());

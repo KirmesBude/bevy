@@ -36,7 +36,7 @@ impl Plugin for WindowIconPlugin {
 /// Insert into a window entity to set the icon for that window.
 #[derive(Component, Debug, Default, Clone, Reflect, PartialEq, Eq)]
 #[reflect(Component, Debug, Default, PartialEq)]
-pub struct WindowIcon(pub Option<Handle<Image>>);
+pub struct WindowIcon(pub Handle<Image>);
 
 fn update_icons(
     mut commands: Commands,
@@ -49,53 +49,55 @@ fn update_icons(
             continue;
         }
 
-        let icon = match icon.0.as_ref() {
-            Some(handle) => {
-                let Some(image) = images.get(handle) else {
-                    warn!(
-                        "Window icon image {handle:?} is not loaded yet and couldn't be used. Trying again next frame."
-                    );
-                    queue.insert(entity);
-                    continue;
-                };
-
-                let width = image.texture_descriptor.size.width;
-                let height = image.texture_descriptor.size.height;
-                let rect = URect::from_corners(UVec2::ZERO, UVec2::new(width, height - 1));
-                let mut rgba = Image::new_fill(
-                    image.texture_descriptor.size,
-                    image.texture_descriptor.dimension,
-                    &[0, 0, 0, 0],
-                    TextureFormat::Rgba8UnormSrgb,
-                    RenderAssetUsages::MAIN_WORLD,
-                );
-                let rgba = match rgba
-                    .rect_bytes_mut(rect, 1)
-                    .unwrap()
-                    .translate_from(image.rect_bytes(rect, 1).unwrap())
-                {
-                    Ok(_) => rgba.data,
-                    Err(err) => {
-                        warn!("Window icon image {handle:?} conversion failed: {err}");
-                        continue;
-                    }
-                };
-
-                let icon = match Icon::from_rgba(rgba, width, height) {
-                    Ok(icon) => icon,
-                    Err(err) => {
-                        warn!("Window icon image {handle:?} is invalid: {err}");
-                        continue;
-                    }
-                };
-
-                Some(icon)
-            }
-            None => None,
+        let handle = &icon.0;
+        let Some(image) = images.get(handle) else {
+            warn!(
+                "Window icon image {handle:?} is not loaded yet and couldn't be used. Trying again next frame."
+            );
+            queue.insert(entity);
+            continue;
         };
 
-        commands.entity(entity).insert(PendingWindowIcon(icon));
+        let width = image.texture_descriptor.size.width;
+        let height = image.texture_descriptor.size.height;
+        let rect = URect::from_corners(UVec2::ZERO, UVec2::new(width, height - 1));
+        let mut rgba = Image::new_fill(
+            image.texture_descriptor.size,
+            image.texture_descriptor.dimension,
+            &[0, 0, 0, 0],
+            TextureFormat::Rgba8UnormSrgb,
+            RenderAssetUsages::MAIN_WORLD,
+        );
+        let rgba = match rgba
+            .rect_bytes_mut(rect, 1)
+            .unwrap()
+            .translate_from(image.rect_bytes(rect, 1).unwrap())
+        {
+            Ok(_) => rgba.data,
+            Err(err) => {
+                warn!("Window icon image {handle:?} conversion failed: {err}");
+                continue;
+            }
+        };
+
+        let icon = match Icon::from_rgba(rgba, width, height) {
+            Ok(icon) => icon,
+            Err(err) => {
+                warn!("Window icon image {handle:?} is invalid: {err}");
+                continue;
+            }
+        };
+
+        commands
+            .entity(entity)
+            .insert(PendingWindowIcon(Some(icon)));
     }
 }
 
-fn on_remove_window_icon(_trigger: Trigger<OnRemove, WindowIcon>) {}
+/// Resets the window icon to the default icon when `WindowIcon` is removed.
+fn on_remove_window_icon(trigger: Trigger<OnRemove, WindowIcon>, mut commands: Commands) {
+    // Use `try_insert` to avoid panic if the window is being destroyed.
+    commands
+        .entity(trigger.entity())
+        .try_insert(PendingWindowIcon(None));
+}
